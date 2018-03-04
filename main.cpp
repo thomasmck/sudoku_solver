@@ -28,6 +28,8 @@ using namespace std;
 vector< vector<int> > construct_puzzle(){
     vector< vector<int> > rows;
     // Feels very manual, must be a nicer way?
+    // TODO: Read in start point from excel sheet
+    
     // 0's represent empty boxes
     vector<int> row1 = {0,0,7,0,0,1,3,0,0};
     rows.push_back(row1);
@@ -113,28 +115,11 @@ void print_puzzle(vector< vector<int> > rows){
     }
 }
 
-int check_box(vector< vector<int> > puzzle, int x, int y) {
-    // Returns the value for a box
-    // Takes the board and the coordinates of the box to checked as params
-    
+int check_for_value_update(vector<int> used, int initial_value) {
+    int value;
+    int set_size = used.size();
     // Start with list of options for what square could be
     int options[] = {1,2,3,4,5,6,7,8,9};
-    vector<int> used;
-    
-    //Work out which options it couldn't possibly be
-    used = get_related_quadrant(puzzle, x, y, used);
-    used = get_related_horizontal(puzzle, x, y, used);
-    used = get_related_vertical(puzzle, x, y, used);
-    
-    // Get default value
-    int value = puzzle[y][x];
-    
-    // Get list of unique used numbers
-    sort( used.begin(), used.end() );
-    used.erase( unique( used.begin(), used.end() ), used.end() );
-    
-    // Work out if there is only one option remaining
-    int set_size = used.size(); 
     if (set_size == 8){
         
         // Convert vector to array to use set_difference
@@ -142,13 +127,41 @@ int check_box(vector< vector<int> > puzzle, int x, int y) {
         vector<int> v(9);
         vector<int>::iterator it;
         
-        // Work out which option is still availabe
+        // Work out which option is still available
         it = set_difference (options, options+9, arr, arr+8, v.begin());
         v.resize(it-v.begin());
         
         // Set value to calculated one
         value = v[0];
+    } else {
+        value = initial_value;
     }
+    return value;
+}
+
+int check_box(vector< vector<int> > puzzle, int x, int y) {
+    // Returns the value for a box
+    // Takes the board and the coordinates of the box to checked as params
+    
+    // vector containing the values already used in other boxes
+    vector<int> used;
+    
+    // Work out which options it couldn't possibly be
+    used = get_related_quadrant(puzzle, x, y, used);
+    used = get_related_horizontal(puzzle, x, y, used);
+    used = get_related_vertical(puzzle, x, y, used);
+    
+    // Get default value
+    int initial_value = puzzle[y][x];
+    
+    // Get list of unique used numbers
+    // TODO: Move to separate function?
+    sort( used.begin(), used.end() );
+    used.erase( unique( used.begin(), used.end() ), used.end() );
+    
+    // Work out what the new box value is
+    int value = check_for_value_update(used, initial_value);
+
     return value;
 }
 
@@ -178,7 +191,10 @@ vector< vector<int> > solve_puzzle(vector< vector<int> > puzzle){
                     *it_in = answer;
                     
                     // If the value is updated print the new puzzle
-                    if (answer != 0) print_puzzle(puzzle);
+                    if (answer != 0) {
+                        cout<<"------------------"<<endl;
+                        print_puzzle(puzzle);
+                    }
                 }
                 row_it++;
             }
