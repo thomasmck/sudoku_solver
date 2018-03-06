@@ -12,6 +12,8 @@
  */
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <cstdlib>
@@ -25,6 +27,27 @@ using namespace std;
 /*
  * 
  */
+
+vector< vector<int> > construct_puzzle_from_csv(){
+    ifstream file ( "file.csv" );
+    vector< vector<int> > rows;
+    if (file.is_open()){
+        string line, character;
+        while (getline (file,line) ){
+            // Note: Is it nicer to re-instantiate or use clear?
+            vector<int> row;
+            stringstream ss(line);
+            while (getline (ss,character, ',') ){
+                int integer = stoi (character,nullptr);
+                row.push_back(integer);
+            }
+            rows.push_back(row);
+        }
+        
+    }
+    return rows;
+}
+
 vector< vector<int> > construct_puzzle(){
     vector< vector<int> > rows;
     // Feels very manual, must be a nicer way?
@@ -207,6 +230,7 @@ vector< vector<int> > solve_puzzle(vector< vector<int> > puzzle){
 int main(int argc, char** argv) {
     // Construct the pre-determined puzzle
     vector< vector<int> > puzzle = construct_puzzle();
+    //vector< vector<int> > puzzle = construct_puzzle_from_csv();
     print_puzzle(puzzle);
     
     // Solve the puzzle
